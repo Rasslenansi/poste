@@ -9,14 +9,15 @@ const BodyParser = require('body-parser');
 
 // declare app and requirements
 app = express();
-app.set("view-engine","ejs");
+app.set("view engine","ejs");
 app.use(express.static(__dirname+"/public"));
 app.use(BodyParser.urlencoded());
 app.use(BodyParser.json());
 app.use(session({secret:"laposte"}));
 
+var server = require('http').createServer(app);
 //connect to database
-mongoose.connect("mongodb://localhost:27017/laposte");
+// mongoose.connect("mongodb://localhost:27017/laposte");
 
 //function to stop redirect
 function rmredire(req) {
@@ -29,7 +30,7 @@ function checklog(req, res) {
   if (req.session.prest) {
     res.redirect("prest");
   }
-  else if (res.session.admin){
+  else if (req.session.admin){
     res.redirect("admin");
   }
 }
@@ -66,3 +67,5 @@ app.get("/prest", function (req,res) {
     res.render("prest_login");
   }
 });
+server.listen(80);
+console.log("listening");
