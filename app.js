@@ -34,7 +34,35 @@ function checklog(req, res) {
   }
 }
 
-//routes
+// ###[routes]###
+// index
 app.get("/", function (req,res) {
-  res.render("index")
+  checklog(req,res);
+  res.render("index");
+});
+
+// index
+app.get("/index", function (req,res) {
+  checklog(req,res);
+  res.render("index");
+});
+
+//login as admin
+app.get("/admin", function (req,res) {
+  if (req.session.admin) {
+    res.render("admin_profile", {admin: req.session.admin});
+  }
+  else {
+    res.render("admin_login");
+  }
+});
+
+//login of prestataire
+app.get("/prest", function (req,res) {
+  if (req.session.prest) {
+    res.render("prest_profile");
+  }
+  else {
+    res.render("prest_login");
+  }
 });
