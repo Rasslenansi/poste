@@ -8,6 +8,14 @@
     <nav>
       <!-- navbar -->
     </nav>
-    <!-- admin login form -->
+    <!-- ejs code to show if there is an error in credentials -->
+     <% if (error != "undefined") {%>
+       <%= error %>
+       <% } %>
+
+    <form class="form" action="/admin_login" method="post">
+      <input type="email" name="email" placeholder="email" required="true">
+      <input type="password" name="pass" placeholder="password" required="true">
+    </form>
   </body>
 </html>

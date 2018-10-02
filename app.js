@@ -19,23 +19,14 @@ var server = require('http').createServer(app);
 //connect to database
 // mongoose.connect("mongodb://localhost:27017/laposte");
 
-//function to stop redirect
-function rmredire(req) {
-  if (req.session.redire){
-    delete req.session.redire;
-  }
-}
-//function to check user
-function checklog(req, res) {
-  if (req.session.prest) {
-    res.redirect("prest");
-  }
-  else if (req.session.admin){
-    res.redirect("admin");
-  }
-}
+//mongoose models
+const admin = require('./models/admin.js');
+const colis = require('./models/colis.js');
+const prest = require('./models/prest.js');
 
 // ###[routes]###
+
+//    ##[GET]##
 // index
 app.get("/", function (req,res) {
   checklog(req,res);
@@ -67,5 +58,56 @@ app.get("/prest", function (req,res) {
     res.render("prest_login");
   }
 });
+
+//  ##[POST]##
+//login as admin
+app.post("admin_login", function (req,res) {
+   var email = req.body.email;
+   var pass = req.body.pass;
+   admin.findOne({email: email}, function (error, admin) {
+     if (error) res.render("error", {error: error});
+     if bcrypt.compareSync(pass, admin.pass) {
+       req.session.admin = admin;
+       res.render("admin_profile", {admin: admin});
+     }
+     else {
+       res.render("admin_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+     }
+   });
+});
+//login as prest
+app.post("prest_login", function (req,res) {
+   var email = req.body.email;
+   var pass = req.body.pass;
+   prest.findOne({email: email}, function (error, prest) {
+     if (error) res.render("error", {error: error});
+     if bcrypt.compareSync(pass, prest.pass) {
+       req.session.prest = prest;
+       res.render("prest_profile", {prest: prest});
+     }
+     else {
+       res.render("prest_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+     }
+   });
+});
+
+// ##[Functions]##
+//function to stop redirect
+function rmredire(req) {
+  if (req.session.redire){
+    delete req.session.redire;
+  }
+}
+//function to check user
+function checklog(req, res) {
+  if (req.session.prest) {
+    res.redirect("prest");
+  }
+  else if (req.session.admin){
+    res.redirect("admin");
+  }
+}
+
+//listen
 server.listen(80);
 console.log("listening");
