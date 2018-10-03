@@ -7,3 +7,4 @@ var ColisSchema = new Schema({
   pin: {type: String, required: true},
   prest: {type: String, required:true}
 });
+module.exports = mongoose.model('colis', ColisSchema);

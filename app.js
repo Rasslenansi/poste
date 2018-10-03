@@ -17,7 +17,7 @@ app.use(session({secret:"laposte"}));
 
 var server = require('http').createServer(app);
 //connect to database
-// mongoose.connect("mongodb://localhost:27017/laposte");
+mongoose.connect("mongodb://localhost:27017/laposte");
 
 //mongoose models
 const admin = require('./models/admin.js');
@@ -59,29 +59,44 @@ app.get("/prest", function (req,res) {
   }
 });
 
+//ajouter un prest (page)
+app.get("/add_prest", function (req,res) {
+  rmredire(req);
+  if (req.session.admin) {
+    res.render("add_admin", {admin: req.session.admin});
+  }
+  else {
+    res.render("admin_login", {ps:"Vous devez être administrateur pour acceder à ce lien"});
+  }
+});
+
 //  ##[POST]##
 //login as admin
-app.post("admin_login", function (req,res) {
+app.post("/admin_login", function (req,res) {
    var email = req.body.email;
    var pass = req.body.pass;
    admin.findOne({email: email}, function (error, admin) {
      if (error) res.render("error", {error: error});
-     if bcrypt.compareSync(pass, admin.pass) {
-       req.session.admin = admin;
-       res.render("admin_profile", {admin: admin});
-     }
-     else {
-       res.render("admin_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+     if (admin){
+       if (bcrypt.compareSync(pass, admin.pass)) {
+         req.session.admin = admin;
+         res.render("admin_profile", {admin: admin});
+       }
+       else {
+         res.render("admin_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+       }
      }
    });
 });
 //login as prest
-app.post("prest_login", function (req,res) {
+app.post("/prest_login", function (req,res) {
    var email = req.body.email;
    var pass = req.body.pass;
+   console.log(email);
+   console.log(pass);
    prest.findOne({email: email}, function (error, prest) {
      if (error) res.render("error", {error: error});
-     if bcrypt.compareSync(pass, prest.pass) {
+     if (bcrypt.compareSync(pass, prest.pass)) {
        req.session.prest = prest;
        res.render("prest_profile", {prest: prest});
      }

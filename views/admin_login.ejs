@@ -8,14 +8,19 @@
     <nav>
       <!-- navbar -->
     </nav>
-    <!-- ejs code to show if there is an error in credentials -->
-     <% if (error != "undefined") {%>
+    <!-- ejs code to show message if there is a redirection -->
+    <% if (typeof ps != "undefined") {%>
+      <%= ps %>
+      <% } %>
+    <!-- ejs code to show if there is an error in login -->
+     <% if (typeof error != "undefined") {%>
        <%= error %>
        <% } %>
 
     <form class="form" action="/admin_login" method="post">
-      <input type="email" name="email" placeholder="email" required="true">
+      <input type="text" name="id" placeholder="ID" required="true">
       <input type="password" name="pass" placeholder="password" required="true">
+      <input type="submit" name="submit" value="connecter">
     </form>
   </body>
 </html>
