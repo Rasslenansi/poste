@@ -5,6 +5,9 @@
     <title>Ajouter un prestataire</title>
   </head>
   <body>
+    <% if (typeof error != "undefined") { %>
+      <%= error %>
+      <% } %>
     <form class="form" action="/add_prest" method="post">
       <input type="text" name="nom" placeholder="nom">
       <input type="text" name="prenom" placeholder="prenom"><br>

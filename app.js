@@ -21,7 +21,7 @@ mongoose.connect("mongodb://localhost:27017/laposte");
 
 //mongoose models
 const admin = require('./models/admin.js');
-const colis = require('./models/colis.js');
+const bal = require('./models/bal.js');
 const prest = require('./models/prest.js');
 
 // ###[routes]###
@@ -29,8 +29,15 @@ const prest = require('./models/prest.js');
 //    ##[GET]##
 // index
 app.get("/", function (req,res) {
-  checklog(req,res);
-  res.render("index");
+  if (req.session.admin) {
+    res.render("index", {admin:req.session.admin});
+  }
+  else if (req.session.prest) {
+    res.render("index", {prest: req.session.prest});
+  }
+  else {
+    res.render("index");
+  }
 });
 
 // index
@@ -66,51 +73,155 @@ app.get("/add_prest", function (req,res) {
     res.render("add_admin", {admin: req.session.admin});
   }
   else {
-    res.render("admin_login", {ps:"Vous devez être administrateur pour acceder à ce lien"});
+    req.session.redirect = "/add_prest"
+    res.render("admin_login", {ps:"Vous devez être administrateur pour acceder à cette page"});
   }
 });
-
+//ajouter un admin (page)
+app.get("/add_admin", function (req,res) {
+  rmredire(req);
+  if (req.session.admin) {
+    res.render("add_prest", {admin: req.session.admin});
+  }
+  else {
+    req.session.redirect = "/add_admin";
+    res.render("admin_login", {ps:"Vous devez être administrateur pour acceder à cette page"})
+  }
+});
+//ajouter une Bal
+app.get("/add_bal", function (req,res) {
+  rmredire(req)
+  if (req.session.admin) {
+    res.render("add_bal");
+  }
+  else {
+    req.session.redirect = "/add_bal";
+    res.render("admin_login", {ps: "vous devez etre administrateur pour ajouter des colis"});
+  }
+})
 //  ##[POST]##
 //login as admin
 app.post("/admin_login", function (req,res) {
-   var email = req.body.email;
+   var id = req.body.id;
    var pass = req.body.pass;
-   admin.findOne({email: email}, function (error, admin) {
+   admin.findOne({id: id}, function (error, admin) {
      if (error) res.render("error", {error: error});
      if (admin){
        if (bcrypt.compareSync(pass, admin.pass)) {
          req.session.admin = admin;
+         if (req.session.redirect){
+           redirect(req.session.redirect);
+         }
          res.render("admin_profile", {admin: admin});
        }
        else {
-         res.render("admin_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+         res.render("admin_login", {error: "le mot de passe est incorrecte"});
        }
+     }
+     else {
+       res.render("admin_login", {error: "cet ID n'existe pas"});
      }
    });
 });
 //login as prest
 app.post("/prest_login", function (req,res) {
-   var email = req.body.email;
+   var id = req.body.id;
    var pass = req.body.pass;
-   console.log(email);
-   console.log(pass);
-   prest.findOne({email: email}, function (error, prest) {
+   console.log(id);
+   console.log(bcrypt.hashSync(pass, 10));
+   prest.findOne({id: id}, function (error, prest) {
      if (error) res.render("error", {error: error});
-     if (bcrypt.compareSync(pass, prest.pass)) {
+     if (prest){
+       if (bcrypt.compareSync(pass, prest.pass)) {
        req.session.prest = prest;
        res.render("prest_profile", {prest: prest});
      }
      else {
        res.render("prest_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
      }
+   }
+   else {
+    res.render("prest_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
+   }
    });
+});
+//add prest
+app.post("/add_prest", function (req,res) {
+  var hashedPass = bcrypt.hashSync(req.body.pass, 10);
+  console.log(hashedPass);
+  prest.create({
+    nom: req.body.nom,
+    prenom: req.body.prenom,
+    id: req.body.id,
+    pass: hashedPass
+  }, function (error, prest) {
+    if (error) {
+      res.render("add_prest", {error: "cet ID est déja utilisé"});
+    }
+    else {
+      res.redirect("/prest_profile/"+prest._id);
+    }
+  });
+});
+//add admin
+app.post("/add_admin", function (req,res) {
+  var hashedPass = bcrypt.hashSync(req.body.pass, 10);
+  console.log(hashedPass);
+  admin.create({
+    nom: req.body.nom,
+    prenom: req.body.prenom,
+    id: req.body.id,
+    pass: hashedPass
+  }, function (error, admin) {
+    if (error) {
+      res.render("add_admin", {error: "cet ID est déja utilisé"});
+    }
+    else {
+      res.redirect("/admin_profile/"+admin._id);
+    }
+  });
+});
+
+//update admin information
+app.post("/update_admin", function (req,res) {
+  admin.findOneAndUpdate({_id:req.session.admin._id}, {$set:{
+    nom: req.body.nom,
+    prenom: req.body.prenom,
+    etablissement: req.body.etablissement
+  }},{new: true}, function (error,result) {
+    if (error) res.render("error", {error: error});
+    if (result) {
+      req.session.admin = result;
+      res.render("admin_profile", {admin: req.session.admin});
+    }
+    else {
+      res.render("error", {error:"a problem occured"});
+    }
+  });
+});
+//ajouter bal
+app.post("/add_bal", function (req,res) {
+  bal.create({
+    address: req.body.address,
+    burpro: req.body.burpro,
+    pin: req.body.pin,
+    prest: req.body.prest,
+    regat: req.body.regat,
+    relv_par: req.body.regat,
+    relev: false
+  },function (error,bal) {
+    if (error) res.render("error", {error: error});
+    if (bal) {
+      res.render("resume_bal", {bal: bal});
+    }
+  });
 });
 
 // ##[Functions]##
 //function to stop redirect
 function rmredire(req) {
-  if (req.session.redire){
-    delete req.session.redire;
+  if (req.session.redirect){
+    delete req.session.redirect;
   }
 }
 //function to check user

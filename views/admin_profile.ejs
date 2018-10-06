@@ -9,8 +9,13 @@
       <!-- navbar -->
     </nav>
     <!-- content will be here soon -->
-    <%= admin.nom %> <%= admin.prenom %>
     <a href="/add_prest">Ajouter un prestataire</a> <a href="/add_admin">Ajouter un administrateur</a><br>
-    <a href="/ajouter_colis">Ajouter un colis</a>
+    <a href="/add_bal">Ajouter une boite au lettre</a>
+    <form class="form" action="/update_admin" method="post"><br>
+      <input type="text" name="nom" value="<%= admin.nom %>"><br>
+      <input type="text" name="prenom" value="<%= admin.prenom %>"><br>
+      <input type="text" name="etablissement" value="<%= admin.etablissement %>"><br>
+      <input type="submit" name="submit" value="submit">
+    </form>
   </body>
 </html>
