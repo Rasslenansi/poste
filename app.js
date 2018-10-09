@@ -90,7 +90,7 @@ app.get("/add_admin", function (req,res) {
 });
 //ajouter une Bal
 app.get("/add_bal", function (req,res) {
-  rmredire(req)
+  rmredire(req);
   if (req.session.admin) {
     res.render("add_bal");
   }
@@ -98,7 +98,34 @@ app.get("/add_bal", function (req,res) {
     req.session.redirect = "/add_bal";
     res.render("admin_login", {ps: "vous devez etre administrateur pour ajouter des colis"});
   }
-})
+});
+//voir le profil d'un prestataire
+app.get("/prest_details/:id", function (req,res) {
+  rmredire(req);
+  prest.findOne({_id:req.params.id}, function (error,result) {
+    if (error) res.render("error", {error:error});
+    if (result) {
+      res.render("prest_details", {prest: result});
+    }
+  });
+});
+//voir le profil d'un admin
+app.get("/admin_details/:id", function (req,res) {
+  rmredire(req);
+  admin.findOne({_id:req.params.id}, function (error,result) {
+    if (error) res.render("error", {error:error});
+    if (result) {
+      res.render("admin_details", {admin: result});
+    }
+  });
+});
+//list of prestaires
+app.get("/prest_list", function (req,res) {
+  prest.find({}, function (error,result) {
+    if (error) res.render("error", {error:error});
+    res.render("prest_list", {list:result});
+  });
+});
 //  ##[POST]##
 //login as admin
 app.post("/admin_login", function (req,res) {
@@ -127,14 +154,17 @@ app.post("/admin_login", function (req,res) {
 app.post("/prest_login", function (req,res) {
    var id = req.body.id;
    var pass = req.body.pass;
-   console.log(id);
-   console.log(bcrypt.hashSync(pass, 10));
    prest.findOne({id: id}, function (error, prest) {
      if (error) res.render("error", {error: error});
      if (prest){
        if (bcrypt.compareSync(pass, prest.pass)) {
        req.session.prest = prest;
-       res.render("prest_profile", {prest: prest});
+       bal.find({prest: prest.id}, function (error, bal_list) {
+         if (error) res.render("error", {error:error});
+         if (bal_list) {
+           res.render("prest_profile", {prest:prest, bal_list:bal_list});
+         }
+       });
      }
      else {
        res.render("prest_login", {error: "le mot de passe ou l'addresse n'est pas correcte"});
@@ -159,7 +189,7 @@ app.post("/add_prest", function (req,res) {
       res.render("add_prest", {error: "cet ID est déja utilisé"});
     }
     else {
-      res.redirect("/prest_profile/"+prest._id);
+      res.redirect("/prest_details/"+prest._id);
     }
   });
 });
@@ -177,7 +207,7 @@ app.post("/add_admin", function (req,res) {
       res.render("add_admin", {error: "cet ID est déja utilisé"});
     }
     else {
-      res.redirect("/admin_profile/"+admin._id);
+      res.redirect("/admin_details/"+admin._id);
     }
   });
 });

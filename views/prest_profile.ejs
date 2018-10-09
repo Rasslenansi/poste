@@ -9,6 +9,22 @@
       <!-- navbar -->
     </nav>
     <!-- prest profile content will come soon -->
-    <%= prest.nom %> <%= prest._id %>
+    <%= prest.nom %> <%= prest.prenom %>
+    Votre ID: <%= prest._id %><br>
+    Vos Colis:
+    <% if (bal_list) != "" { %>
+    <% bal_list.forEach(function(bal) {%>
+      <!-- if there are bals this will be show -->
+      <p>
+      Addresse: <%= bal.address%><br>
+      Bureau plus proche: <%= bal.burpro %><br>
+      <% if (relv_par) { %> Relevée par <%= bal.relv_par %> <% } %><br>
+      <button type="button" name="button" onclick="releve">OK</button>
+      <% }); %>
+    </p>
+      <% } else { %>
+        <!-- If there are no bals this will be show -->
+        Vous n'avez pas de boites aux lettres
+        <% } %>
   </body>
 </html>
