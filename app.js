@@ -59,7 +59,12 @@ app.get("/admin", function (req,res) {
 //login of prestataire
 app.get("/prest", function (req,res) {
   if (req.session.prest) {
-    res.render("prest_profile");
+    bal.find({id:req.session.id}, function (error,result) {
+      if (error) res.render("error", {error:error});
+      if (result) {
+        res.render("prest_profile", {prest:req.session.prest, bal_list:result});
+      }
+    });
   }
   else {
     res.render("prest_login");
@@ -125,6 +130,13 @@ app.get("/prest_list", function (req,res) {
     if (error) res.render("error", {error:error});
     res.render("prest_list", {list:result});
   });
+});
+//deconnection
+app.get("/deconnection", function (req,res) {
+  if (req.session) {
+    delete req.session;
+  }
+  res.redirect("/");
 });
 //  ##[POST]##
 //login as admin
