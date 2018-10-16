@@ -59,7 +59,7 @@ app.get("/admin", function (req,res) {
 //login of prestataire
 app.get("/prest", function (req,res) {
   if (req.session.prest) {
-    bal.find({id:req.session.id}, function (error,result) {
+    bal.find({$and:[{id:req.session.id}, {relev:"false"}]}, function (error,result) {
       if (error) res.render("error", {error:error});
       if (result) {
         res.render("prest_profile", {prest:req.session.prest, bal_list:result});
@@ -126,10 +126,14 @@ app.get("/admin_details/:id", function (req,res) {
 });
 //list of prestaires
 app.get("/prest_list", function (req,res) {
-  prest.find({}, function (error,result) {
-    if (error) res.render("error", {error:error});
-    res.render("prest_list", {list:result});
-  });
+  if (req.session.admin){
+    prest.find({}, function (error,result) {
+      if (error) res.render("error", {error:error});
+      res.render("prest_list", {list:result});
+    });
+  }else {
+    res.redirect("/admin")
+  }
 });
 //deconnection
 app.get("/deconnection", function (req,res) {
@@ -276,6 +280,51 @@ function checklog(req, res) {
   }
 }
 
+//permenant test
+app.get("/test", function (req,res) {
+  res.render("test");
+});
+app.post("/test", function (req,res) {
+  var id = req.body.id;
+  var nom = req.body.nom;
+  var prenom = req.body.prenom;
+  var pass = bcrypt.hashSync(req.body.pass, 10);
+  var etablissement = req.body.etablissement;
+  admin.create({
+    id : id,
+    nom : nom,
+    prenom : prenom,
+    pass : pass,
+    etablissement : etablissement
+  }, function (error, admin) {
+    if (admin) {
+      res.render("test", {ps:"success"});
+    }
+    else {
+      res.render("test", {ps:"Failed"});
+    }
+  });
+});
+
 //listen
 server.listen(80);
 console.log("listening");
+
+//socket and picking up bals
+var io = require('socket.io')(server);
+io.sockets.on("connection", function (socket) {
+  socket.on("relever", function (data) {
+    var id = data.id;
+    var pin = data.pin;
+    bal.findOne({$and:[{_id:id}, {pin:pin}]}, function (error,boite) {
+      if (boite) {
+        bal.findOneAndUpdate({_id:id}, {$set:{relev:true}}, function (error,result) {
+          if (result) {socket.emit("success", result._id)}
+        });
+      }
+      else {
+        socket.emit("fail", id);
+      }
+    });
+  });
+})

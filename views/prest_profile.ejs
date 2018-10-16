@@ -9,7 +9,7 @@
       <!-- navbar -->
     </nav>
     <!-- prest profile content will come soon -->
-    <%= prest.nom %> <%= prest.prenom %> <br>
+    <%= prest.nom %> <%= prest.prenom %> <br> <a href="/deconnection" align="left">Deconnection</a>
     Votre ID: <%= prest.id %><br>
     Vos Boites aux lettres:
     <% if (bal_list != "" ) { %>
@@ -19,7 +19,10 @@
       Addresse: <%= bal.address%><br>
       Bureau plus proche: <%= bal.burpro %><br>
       <% if (bal.relv_par != "") { %> Relevée par <%= bal.relv_par %> <% } %><br>
-      <button type="button" name="button" onclick="releve(<%= bal._id %>)">OK</button>
+      <div id="<%= bal._id %>">
+        <input type="text" name="pin" placeholder="PIN" size="4" id="pin" required="true">
+        <button type="button" name="button" onclick="relev('<%= bal._id %>');">OK</button>
+      </div>
       <% }); %>
     </p>
       <% } else { %>
@@ -27,13 +30,18 @@
         Vous n'avez pas de boites aux lettres
         <% } %>
   </body>
-  <script src="/socket.io/socket.io.js">
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
     var socket = io.connect("http://localhost:80");
     function relev(id) {
-      socket.emit("relever", {id:bal_id});
+      var pin = document.getElementById('pin').value
+      socket.emit("relever", {id:id, pin:pin});
     }
     socket.on("success", function (id) {
-      
+      document.getElementById(id).innerHTML = "<b> OK </b>"
     });
+    socket.on("fail", function (id) {
+      document.getElementById(id).innerHTML += "<b> Verfier le code PIN </<b> "
+    })
   </script>
 </html>
