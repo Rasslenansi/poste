@@ -9,10 +9,15 @@
       <!-- navbar -->
     </nav>
     <!-- content will be here soon -->
-    <a href="/add_prest">Ajouter un prestataire</a> <a href="/add_admin">Ajouter un administrateur</a><br>
-    <a href="/add_bal" align="left">Ajouter une boite au lettre</a><br><a href="/deconnection" align="left">Deconnection</a>
-    <a href="/prest_list">Afficher la liste des prestataires</a><br>
-    <form class="form" action="/update_admin" method="post"><br>
+    <font align="right">
+      <div style="textalign: right;">
+        <a href="/add_bal" align="right">Ajouter une boite au lettre</a>
+        <a href="/deconnection" align="right">Deconnection</a>
+      </div>
+      <font>
+        <a href="/add_prest">Ajouter un prestataire</a> <a href="/add_admin">Ajouter un administrateur</a><br>
+  <br> <a href="/prest_list">Afficher la liste des prestataires</a> <a href="/bal_list">Afficher la liste des boites à lettre </a> <br><br>
+    <form class="form" action="/update_admin" method="post" style="text-align: left;">
       <input type="text" name="nom" value="<%= admin.nom %>"><br>
       <input type="text" name="prenom" value="<%= admin.prenom %>"><br>
       <input type="text" name="etablissement" value="<%= admin.etablissement %>"><br>

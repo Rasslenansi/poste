@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="fr" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Liste des boites aux lettres</title>
+  </head>
+  <body>
+    <% bal_list.forEach(function (bal){ %>
+      Address la plus proche: <%= bal.address%><br>
+      Bureau plus proche: <%= bal.burpro %><br>
+      Code pin: <%= bal.pin %><br>
+      relevée par <%= bal.relv_par %><br>
+      <hr>
+    <%})%>
+  </body>
+</html>

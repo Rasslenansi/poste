@@ -48,6 +48,7 @@ app.get("/index", function (req,res) {
 
 //login as admin
 app.get("/admin", function (req,res) {
+  rmredire(req);
   if (req.session.admin) {
     res.render("admin_profile", {admin: req.session.admin});
   }
@@ -58,6 +59,7 @@ app.get("/admin", function (req,res) {
 
 //login of prestataire
 app.get("/prest", function (req,res) {
+  rmredire(req);
   if (req.session.prest) {
     bal.find({$and:[{id:req.session.id}, {relev:"false"}]}, function (error,result) {
       if (error) res.render("error", {error:error});
@@ -126,6 +128,7 @@ app.get("/admin_details/:id", function (req,res) {
 });
 //list of prestaires
 app.get("/prest_list", function (req,res) {
+  rmredire(req);
   if (req.session.admin){
     prest.find({}, function (error,result) {
       if (error) res.render("error", {error:error});
@@ -137,10 +140,22 @@ app.get("/prest_list", function (req,res) {
 });
 //deconnection
 app.get("/deconnection", function (req,res) {
-  if (req.session) {
-    delete req.session;
-  }
+  rmredire(req);
+  req.session.destroy();
   res.redirect("/");
+});
+//show list of bals
+app.get("/bal_list", function (req,res) {
+  rmredire(req);
+  if (req.session.admin) {
+    bal.find({}, function (error, bal_list) {
+      if (error) res.render("error", {error:error});
+      res.render("bal_list", {bal_list:bal_list});
+    });
+  }else {
+    req.session.redirect = "/bal_list"
+    res.redirect("/admin")
+  }
 });
 //  ##[POST]##
 //login as admin
@@ -153,9 +168,10 @@ app.post("/admin_login", function (req,res) {
        if (bcrypt.compareSync(pass, admin.pass)) {
          req.session.admin = admin;
          if (req.session.redirect){
-           redirect(req.session.redirect);
+           res.redirect(req.session.redirect);
+         }else {
+           res.render("admin_profile", {admin: admin});
          }
-         res.render("admin_profile", {admin: admin});
        }
        else {
          res.render("admin_login", {error: "le mot de passe est incorrecte"});
@@ -175,7 +191,7 @@ app.post("/prest_login", function (req,res) {
      if (prest){
        if (bcrypt.compareSync(pass, prest.pass)) {
        req.session.prest = prest;
-       bal.find({prest: prest.id}, function (error, bal_list) {
+       bal.find({prest: prest.id, relev:false}, function (error, bal_list) {
          if (error) res.render("error", {error:error});
          if (bal_list) {
            res.render("prest_profile", {prest:prest, bal_list:bal_list});
@@ -316,7 +332,7 @@ io.sockets.on("connection", function (socket) {
   socket.on("relever", function (data) {
     var id = data.id;
     var pin = data.pin;
-    bal.findOne({$and:[{_id:id}, {pin:pin}]}, function (error,boite) {
+    bal.findOne({_id:id, pin:pin}, function (error,boite) {
       if (boite) {
         bal.findOneAndUpdate({_id:id}, {$set:{relev:true}}, function (error,result) {
           if (result) {socket.emit("success", result._id)}

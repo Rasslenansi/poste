@@ -9,7 +9,11 @@
       <!-- navbar -->
     </nav>
     <!-- prest profile content will come soon -->
-    <%= prest.nom %> <%= prest.prenom %> <br> <a href="/deconnection" align="left">Deconnection</a>
+    <font align="right">
+    <a href="/deconnection" style="text-align: right;">Deconnection</a>
+  </font>
+  <br>
+    <%= prest.nom %> <%= prest.prenom %> <br>
     Votre ID: <%= prest.id %><br>
     Vos Boites aux lettres:
     <% if (bal_list != "" ) { %>
